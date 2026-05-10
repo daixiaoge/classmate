@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>叶子老师排课工具</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+body{background:#f7f8fa;color:#222;padding-bottom:80px}
+.nav-bar{background:#fff;padding:12px 16px;display:flex;gap:8px;position:sticky;top:0;z-index:99;border-bottom:1px solid #eee}
+.nav-bar button{flex:1;border:none;background:#eef2ff;color:#3662e3;padding:8px 0;border-radius:8px;font-size:14px}
+.nav-bar button.active{background:#3662e3;color:#fff}
+.week-bar{background:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee}
+.week-title{font-size:15px;font-weight:600}
+.week-nav button{border:none;background:#eef2ff;color:#3662e3;padding:5px 10px;border-radius:8px;margin:0 3px;font-size:13px}
+.days-row{display:grid;grid-template-columns:repeat(7,1fr);background:#fff;border-bottom:1px solid #eee}
+.day-cell{text-align:center;padding:8px 2px;font-size:12px;font-weight:500;border-right:1px solid #eee}
+.day-cell:last-child{border-right:none}
+.times-container{padding-top:4px}
+.time-row{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #eee}
+.time-slot{min-height:52px;padding:4px 2px;border-right:1px solid #eee;font-size:11px;text-align:center;cursor:pointer;transition:0.15s;background:#fff}
+.time-slot:last-child{border-right:none}
+.time-slot.normal{background:#eef6ff;color:#2d5bd1;font-weight:500}
+.time-slot.done{background:#e8f5e9;color:#2e7d32;font-weight:500}
+.time-label{position:absolute;left:6px;width:46px;font-size:10px;color:#666;line-height:52px}
+.popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:200}
+.popup-box{background:#fff;width:88%;max-width:360px;border-radius:14px;padding:20px;max-height:80vh;overflow:auto}
+.popup-title{font-size:16px;font-weight:600;margin-bottom:16px}
+.student-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.student-item{background:#f1f3fa;padding:8px 12px;border-radius:8px;font-size:13px;cursor:pointer}
+.popup-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.popup-buttons button{flex:1;padding:10px;border:none;border-radius:10px;font-size:13px}
+.btn-done{background:#c8e6c9;color:#1b5e20}
+.btn-clear{background:#ffebee;color:#c62828}
+.btn-close{background:#eee;color:#333}
+.btn-export{background:#d1e7dd;color:#0f5132}
+.page{display:none;padding:16px}
+.page.active{display:block}
+.add-student{display:flex;gap:8px;margin-bottom:16px}
+.add-student input{flex:1;padding:10px;border:1px solid #ddd;border-radius:8px}
+.add-student button{padding:10px 14px;background:#3662e3;color:#fff;border:none;border-radius:8px}
+.student-item-manage{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-radius:8px;margin-bottom:8px}
+.student-btn-group{display:flex;gap:6px}
+.student-item-manage button{border:none;padding:6px 10px;border-radius:6px;font-size:12px}
+.btn-record{background:#eef2ff;color:#3662e3}
+.btn-del{background:#ffcdd2;color:#c62828}
+.stat-week-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.stat-week-nav button{background:#eef2ff;border:none;padding:8px 12px;border-radius:8px;color:#3662e3}
+.stat-week-text{font-weight:600;font-size:15px}
+.stat-box{background:#fff;padding:16px;border-radius:10px}
+.stat-item{padding:8px 0;font-size:14px}
+.stat-total{font-size:16px;font-weight:600;margin-bottom:12px;color:#222}
+.flow-item{padding:8px 0;border-bottom:1px solid #eee;font-size:13px;color:#333}
+.record-week-nav{display:flex;justify-content:space-between;margin-bottom:12px}
+.record-week-nav button{background:#eef2ff;border:none;padding:6px 10px;border-radius:8px;color:#3662e3}
+.record-empty{text-align:center;color:#999;padding:20px 0}
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <button class="active" onclick="switchPage('schedule')">排课</button>
+  <button onclick="switchPage('student')">学生管理</button>
+  <button onclick="switchPage('stat')">统计</button>
+</div>
+<div class="page active" id="page-schedule">
+  <div class="week-bar">
+    <div class="week-title" id="weekText">本周</div>
+    <div class="week-nav">
+      <button onclick="prevWeek()">上一周</button>
+      <button onclick="nextWeek()">下一周</button>
+    </div>
+  </div>
+  <div class="days-row" id="daysRow"></div>
+  <div class="times-container" id="timesContainer"></div>
+</div>
+<div class="page" id="page-student">
+  <div class="add-student">
+    <input type="text" id="stuInput" placeholder="输入学生姓名">
+    <button onclick="addStudent()">添加</button>
+  </div>
+  <div id="stuListManage"></div>
+</div>
+<div class="page" id="page-stat">
+  <div class="stat-week-nav">
+    <button onclick="statPrevWeek()">上一周</button>
+    <div class="stat-week-text" id="statWeekText">本周</div>
+    <button onclick="statNextWeek()">下一周</button>
+  </div>
+  <div class="stat-box">
+    <div id="statResult"></div>
+  </div>
+</div>
+<div class="popup" id="popup">
+  <div class="popup-box">
+    <div class="popup-title">安排课程</div>
+    <div class="student-list" id="studentList"></div>
+    <div class="popup-buttons">
+      <button class="btn-done" onclick="setDone()">标记已上课 ✔</button>
+      <button class="btn-clear" onclick="clearSlot()">取消安排</button>
+      <button class="btn-close" onclick="closePopup()">关闭</button>
+    </div>
+  </div>
+</div>
+<div class="popup" id="recordPopup">
+  <div class="popup-box">
+    <div class="popup-title" id="recordTitle">学生课程记录</div>
+    <div class="record-week-nav">
+      <button onclick="recordPrevWeek()">上一周</button>
+      <span id="recordWeekText">本周</span>
+      <button onclick="recordNextWeek()">下一周</button>
+    </div>
+    <div id="recordList"></div>
+    <div class="popup-buttons" style="margin-top:16px">
+      <button class="btn-export" onclick="exportRecordExcel()">导出本周记录</button>
+      <button class="btn-close" onclick="closeRecordPopup()">关闭</button>
+    </div>
+  </div>
+</div>
+<script>
+const startHour = 8;
+const endHour = 18;
+let currentWeekOffset = 0;
+let currentSlotKey = "";
+let recordStuName = "";
+let recordWeekOffset = 0;
+let currentRecordList = [];
+let statWeekOffset = 0;
+let schedule = JSON.parse(localStorage.getItem("teacherSchedule")) || {};
+let students = JSON.parse(localStorage.getItem("teacherStudents")) || ["张三","李四","王五","赵六"];
+function switchPage(page){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById("page-"+page).classList.add("active");
+  document.querySelectorAll(".nav-bar button").forEach(b=>b.classList.remove("active"));
+  event.target.classList.add("active");
+  if(page==="student") renderStudentManage();
+  if(page==="stat") calcStat();
+}
+function init(){
+  renderWeek();
+  renderDays();
+  renderTimeSlots();
+  renderStudents();
+  renderStudentManage();
+}
+function prevWeek(){currentWeekOffset--;renderWeek();renderDays();renderTimeSlots()}
+function nextWeek(){currentWeekOffset++;renderWeek();renderDays();renderTimeSlots()}
+function renderWeek(){
+  const weekStart = getWeekStart(new Date(), currentWeekOffset);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate()+6);
+  const fmt = d=>`${d.getMonth()+1}/${d.getDate()}`;
+  document.getElementById("weekText").innerText = `${fmt(weekStart)} - ${fmt(weekEnd)}`;
+}
+function getWeekStart(base, offset){
+  const d = new Date(base);
+  const day = d.getDay()||7;
+  d.setDate(d.getDate() - day + 1 + offset*7);
+  d.setHours(0,0,0,0);
+  return d;
+}
+function renderDays(){
+  const row = document.getElementById("daysRow");
+  row.innerHTML = "";
+  const start = getWeekStart(new Date(), currentWeekOffset);
+  const weekNames = ["周一","周二","周三","周四","周五","周六","周日"];
+  for(let i=0;i<7;i++){
+    const d = new Date(start);
+    d.setDate(d.getDate()+i);
+    const cell = document.createElement("div");
+    cell.className = "day-cell";
+    cell.innerText = `${weekNames[i]}\n${d.getMonth()+1}/${d.getDate()}`;
+    row.appendChild(cell);
+  }
+}
+function renderTimeSlots(){
+  const container = document.getElementById("timesContainer");
+  container.innerHTML = "";
+  const weekKey = getWeekKey();
+  for(let h=startHour;h<endHour;h++){
+    const row = document.createElement("div");
+    row.className = "time-row";
+    const label = document.createElement("div");
+    label.className = "time-label";
+    label.innerText = `${h}:00`;
+    row.appendChild(label);
+    for(let d=0;d<7;d++){
+      const key = `${weekKey}-${d}-${h}`;
+      const slot = document.createElement("div");
+      slot.className = "time-slot";
+      slot.dataset.key = key;
+      const data = schedule[key];
+      if(data){
+        slot.innerText = data.done ? `✔ ${data.name}` : data.name;
+        slot.classList.add(data.done ? "done" : "normal");
+      }
+      slot.onclick = ()=>openPopup(key);
+      row.appendChild(slot);
+    }
+    container.appendChild(row);
+  }
+}
+function getWeekKey(){
+  const s = getWeekStart(new Date(), currentWeekOffset);
+  return `${s.getFullYear()}-${s.getMonth()+1}-${s.getDate()}`;
+}
+function openPopup(key){
+  currentSlotKey = key;
+  document.getElementById("popup").style.display = "flex";
+}
+function closePopup(){document.getElementById("popup").style.display = "none"}
+function renderStudents(){
+  const list = document.getElementById("studentList");
+  list.innerHTML = "";
+  students.forEach(stu=>{
+    const item = document.createElement("div");
+    item.className = "student-item";
+    item.innerText = stu;
+    item.onclick = ()=>assignStudent(stu);
+    list.appendChild(item);
+  });
+}
+function assignStudent(name){
+  schedule[currentSlotKey] = {name, done:false};
+  saveAll();
+  renderTimeSlots();
+  closePopup();
+}
+function setDone(){
+  if(schedule[currentSlotKey]){
+    schedule[currentSlotKey].done = true;
+    saveAll();
+    renderTimeSlots();
+  }
+  closePopup();
+}
+function clearSlot(){
+  delete schedule[currentSlotKey];
+  saveAll();
+  renderTimeSlots();
+  closePopup();
+}
+function renderStudentManage(){
+  const wrap = document.getElementById("stuListManage");
+  wrap.innerHTML = "";
+  students.forEach((stu,i)=>{
+    const div = document.createElement("div");
+    div.className = "student-item-manage";
+    div.innerHTML = `<span>${stu}</span><div class="student-btn-group"><button class="btn-record" onclick="openRecord('${stu}')">课程记录</button><button class="btn-del" onclick="delStudent(${i})">删除</button></div>`;
+    wrap.appendChild(div);
+  });
+}
+function addStudent(){
+  const name = document.getElementById("stuInput").value.trim();
+  if(!name) return;
+  students.push(name);
+  document.getElementById("stuInput").value = "";
+  saveAll();
+  renderStudents();
+  renderStudentManage();
+}
+function delStudent(idx){
+  students.splice(idx,1);
+  saveAll();
+  renderStudents();
+  renderStudentManage();
+}
+function openRecord(name){
+  recordStuName = name;
+  recordWeekOffset = 0;
+  document.getElementById("recordTitle").innerText = `${name} 课程记录`;
+  renderRecordWeek();
+  renderRecordList();
+  document.getElementById("recordPopup").style.display = "flex";
+}
+function closeRecordPopup(){
+  document.getElementById("recordPopup").style.display = "none";
+}
+function recordPrevWeek(){recordWeekOffset--;renderRecordWeek();renderRecordList()}
+function recordNextWeek(){recordWeekOffset++;renderRecordWeek();renderRecordList()}
+function renderRecordWeek(){
+  const s = getWeekStart(new Date(), recordWeekOffset);
+  const e = new Date(s);
+  e.setDate(e.getDate()+6);
+  const fmt = d=>`${d.getMonth()+1}/${d.getDate()}`;
+  document.getElementById("recordWeekText").innerText = `${fmt(s)} - ${fmt(e)}`;
+}
+function renderRecordList(){
+  const listWrap = document.getElementById("recordList");
+  listWrap.innerHTML = "";
+  currentRecordList = [];
+  const weekStart = getWeekStart(new Date(), recordWeekOffset);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate()+6);
+  const records = [];
+  for(const key in schedule){
+    const item = schedule[key];
+    if(!item?.name || !item.done || item.name !== recordStuName) continue;
+    const parts = key.split("-");
+    const y = Number(parts[0]);
+    const m = Number(parts[1]) - 1;
+    const d = Number(parts[2]);
+    const hour = Number(parts[4]);
+    const slotDate = new Date(y, m, d);
+    if(slotDate >= weekStart && slotDate <= weekEnd){
+      const data = {学生姓名: recordStuName,上课日期: `${y}-${m+1}-${d}`,上课时段: `${hour}:00~${hour+1}:00`};
+      records.push(data);
+      currentRecordList.push(data);
+    }
+  }
+  if(records.length === 0){
+    listWrap.innerHTML = `<div class="record-empty">本周暂无上课记录</div>`;
+    return;
+  }
+  records.forEach(r=>{
+    const div = document.createElement("div");
+    div.className = "flow-item";
+    div.innerText = `${r.上课日期} ${r.上课时段}`;
+    listWrap.appendChild(div);
+  });
+}
+function exportRecordExcel(){
+  if(currentRecordList.length === 0){
+    alert("本周暂无记录可导出");
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(currentRecordList);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "课程记录");
+  XLSX.writeFile(wb, `${recordStuName}_${document.getElementById("recordWeekText").innerText}.xlsx`);
+}
+function statPrevWeek(){statWeekOffset--;calcStat()}
+function statNextWeek(){statWeekOffset++;calcStat()}
+function calcStat(){
+  const weekStart = getWeekStart(new Date(), statWeekOffset);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate()+6);
+  const fmt = d=>`${d.getMonth()+1}/${d.getDate()}`;
+  document.getElementById("statWeekText").innerText = `${fmt(weekStart)} - ${fmt(weekEnd)}`;
+  let totalDone = 0;
+  const stuStat = {};
+  students.forEach(n=>stuStat[n] = 0);
+  for(const key in schedule){
+    const item = schedule[key];
+    if(!item?.name || !item.done) continue;
+    const parts = key.split("-");
+    const y = Number(parts[0]);
+    const m = Number(parts[1]) - 1;
+    const d = Number(parts[2]);
+    const slotDate = new Date(y, m, d);
+    if(slotDate >= weekStart && slotDate <= weekEnd){
+      totalDone++;
+      stuStat[item.name]++;
+    }
+  }
+  let html = `<div class="stat-total">📊 本周已完成总课时：${totalDone}</div>`;
+  for(const name in stuStat){
+    html += `<div class="stat-item">👤 ${name}：${stuStat[name]} 课时</div>`;
+  }
+  document.getElementById("statResult").innerHTML = html;
+}
+function saveAll(){
+  localStorage.setItem("teacherSchedule", JSON.stringify(schedule));
+  localStorage.setItem("teacherStudents", JSON.stringify(students));
+}
+init();
+</script>
+</body>
+</html>
