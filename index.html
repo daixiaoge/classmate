@@ -14,16 +14,16 @@ body{background:#f7f8fa;color:#222;padding-bottom:80px}
 .week-bar{background:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee}
 .week-title{font-size:15px;font-weight:600}
 .week-nav button{border:none;background:#eef2ff;color:#3662e3;padding:5px 10px;border-radius:8px;margin:0 3px;font-size:13px}
-.days-row{display:grid;grid-template-columns:repeat(7,1fr);background:#fff;border-bottom:1px solid #eee}
-.day-cell{text-align:center;padding:8px 2px;font-size:12px;font-weight:500;border-right:1px solid #eee}
+.days-row{display:flex;background:#fff;border-bottom:1px solid #eee}
+.day-cell{text-align:center;padding:8px 2px;font-size:12px;font-weight:500;border-right:1px solid #eee;flex:1}
 .day-cell:last-child{border-right:none}
 .times-container{padding-top:4px}
-.time-row{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #eee}
-.time-slot{min-height:52px;padding:4px 2px;border-right:1px solid #eee;font-size:11px;text-align:center;cursor:pointer;transition:0.15s;background:#fff}
+.time-row{display:flex;border-bottom:1px solid #e0e0e0}
+.time-label{width:46px;font-size:11px;color:#666;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:500}
+.time-slot{min-height:72px;padding:0;border-right:1px solid #eee;cursor:pointer;transition:0.15s;background:#fff;position:relative;flex:1;text-align:center}
 .time-slot:last-child{border-right:none}
-.time-slot.normal{background:#eef6ff;color:#2d5bd1;font-weight:500}
-.time-slot.done{background:#e8f5e9;color:#2e7d32;font-weight:500}
-.time-label{position:absolute;left:6px;width:46px;font-size:10px;color:#666;line-height:52px}
+.schedule-item{position:absolute;left:2px;right:2px;height:18px;line-height:18px;padding:0 4px;font-size:10px;border-radius:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#eef6ff;color:#2d5bd1;font-weight:500;z-index:1;cursor:pointer}
+.schedule-item.done{background:#e8f5e9;color:#2e7d32}
 .popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:200}
 .popup-box{background:#fff;width:88%;max-width:360px;border-radius:14px;padding:20px;max-height:80vh;overflow:auto}
 .popup-title{font-size:16px;font-weight:600;margin-bottom:16px}
@@ -42,8 +42,9 @@ body{background:#f7f8fa;color:#222;padding-bottom:80px}
 .add-student button{padding:10px 14px;background:#3662e3;color:#fff;border:none;border-radius:8px}
 .student-item-manage{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-radius:8px;margin-bottom:8px}
 .student-btn-group{display:flex;gap:6px}
-.student-item-manage button{border:none;padding:6px 10px;border-radius:6px;font-size:12px}
+.student-item-manage button{border:none;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer}
 .btn-record{background:#eef2ff;color:#3662e3}
+.btn-memo{background:#fff3e0;color:#e65100}
 .btn-del{background:#ffcdd2;color:#c62828}
 .stat-week-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .stat-week-nav button{background:#eef2ff;border:none;padding:8px 12px;border-radius:8px;color:#3662e3}
@@ -52,9 +53,24 @@ body{background:#f7f8fa;color:#222;padding-bottom:80px}
 .stat-item{padding:8px 0;font-size:14px}
 .stat-total{font-size:16px;font-weight:600;margin-bottom:12px;color:#222}
 .flow-item{padding:8px 0;border-bottom:1px solid #eee;font-size:13px;color:#333}
-.record-week-nav{display:flex;justify-content:space-between;margin-bottom:12px}
-.record-week-nav button{background:#eef2ff;border:none;padding:6px 10px;border-radius:8px;color:#3662e3}
 .record-empty{text-align:center;color:#999;padding:20px 0}
+.record-title-date{font-size:13px;color:#666;font-weight:400;margin-top:4px}
+
+/* Memo styles */
+.memo-item{padding:10px;background:#f8f9fc;border-radius:8px;margin-bottom:8px}
+.memo-header{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.memo-date{font-size:12px;color:#666}
+.memo-pinned-tag{font-size:11px;color:#e65100;font-weight:500}
+.memo-content-text{font-size:13px;color:#222;margin-bottom:6px;white-space:pre-wrap;word-break:break-word}
+.memo-actions{display:flex;gap:6px}
+.memo-btn{border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer}
+.memo-btn-pin{background:#eef2ff;color:#3662e3}
+.memo-btn-del{background:#ffebee;color:#c62828}
+.memo-form{margin-bottom:12px}
+.memo-form input,.memo-form textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.memo-form textarea{resize:vertical;min-height:60px;margin-top:6px}
+.memo-form label{display:flex;align-items:center;gap:6px;font-size:13px;margin-top:6px;cursor:pointer}
+.memo-form .btn-add{width:100%;padding:8px;background:#3662e3;color:#fff;border:none;border-radius:8px;margin-top:8px;font-size:13px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -94,6 +110,9 @@ body{background:#f7f8fa;color:#222;padding-bottom:80px}
 <div class="popup" id="popup">
   <div class="popup-box">
     <div class="popup-title">安排课程</div>
+    <div class="time-select-row" id="timeSelectRow" style="margin-bottom:12px">
+      <select id="timeSelect" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px"></select>
+    </div>
     <div class="student-list" id="studentList"></div>
     <div class="popup-buttons">
       <button class="btn-done" onclick="setDone()">标记已上课 ✔</button>
@@ -105,29 +124,55 @@ body{background:#f7f8fa;color:#222;padding-bottom:80px}
 <div class="popup" id="recordPopup">
   <div class="popup-box">
     <div class="popup-title" id="recordTitle">学生课程记录</div>
-    <div class="record-week-nav">
-      <button onclick="recordPrevWeek()">上一周</button>
-      <span id="recordWeekText">本周</span>
-      <button onclick="recordNextWeek()">下一周</button>
-    </div>
     <div id="recordList"></div>
     <div class="popup-buttons" style="margin-top:16px">
-      <button class="btn-export" onclick="exportRecordExcel()">导出本周记录</button>
+      <button class="btn-export" onclick="exportRecordExcel()">导出全部记录</button>
       <button class="btn-close" onclick="closeRecordPopup()">关闭</button>
+    </div>
+  </div>
+</div>
+<div class="popup" id="memoPopup">
+  <div class="popup-box">
+    <div class="popup-title" id="memoTitle">备忘</div>
+    <div class="memo-form">
+      <input type="date" id="memoDate">
+      <textarea id="memoContent" placeholder="输入备忘内容"></textarea>
+      <label><input type="checkbox" id="memoPinned"> 置顶</label>
+      <button class="btn-add" onclick="addMemo()">添加备忘</button>
+    </div>
+    <div id="memoList"></div>
+    <div class="popup-buttons" style="margin-top:12px">
+      <button class="btn-close" onclick="closeMemoPopup()" style="width:100%">关闭</button>
     </div>
   </div>
 </div>
 <script>
 const startHour = 8;
-const endHour = 18;
+const endHour = 20;
 let currentWeekOffset = 0;
 let currentSlotKey = "";
 let recordStuName = "";
-let recordWeekOffset = 0;
 let currentRecordList = [];
 let statWeekOffset = 0;
+let currentMemoStudent = "";
 let schedule = JSON.parse(localStorage.getItem("teacherSchedule")) || {};
 let students = JSON.parse(localStorage.getItem("teacherStudents")) || ["张三","李四","王五","赵六"];
+let studentMemos = JSON.parse(localStorage.getItem("teacherStudentMemos")) || {};
+
+function migrateScheduleData(){
+  let changed = false;
+  for(const key in schedule){
+    const parts = key.split("-");
+    if(parts.length === 5){
+      const newKey = key + "-0";
+      schedule[newKey] = schedule[key];
+      delete schedule[key];
+      changed = true;
+    }
+  }
+  if(changed) localStorage.setItem("teacherSchedule", JSON.stringify(schedule));
+}
+
 function switchPage(page){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById("page-"+page).classList.add("active");
@@ -137,6 +182,7 @@ function switchPage(page){
   if(page==="stat") calcStat();
 }
 function init(){
+  migrateScheduleData();
   renderWeek();
   renderDays();
   renderTimeSlots();
@@ -162,6 +208,9 @@ function getWeekStart(base, offset){
 function renderDays(){
   const row = document.getElementById("daysRow");
   row.innerHTML = "";
+  const spacer = document.createElement("div");
+  spacer.style.cssText = "width:46px;flex-shrink:0";
+  row.appendChild(spacer);
   const start = getWeekStart(new Date(), currentWeekOffset);
   const weekNames = ["周一","周二","周三","周四","周五","周六","周日"];
   for(let i=0;i<7;i++){
@@ -177,25 +226,30 @@ function renderTimeSlots(){
   const container = document.getElementById("timesContainer");
   container.innerHTML = "";
   const weekKey = getWeekKey();
-  for(let h=startHour;h<endHour;h++){
+  for(let h=startHour; h<endHour; h++){
     const row = document.createElement("div");
     row.className = "time-row";
     const label = document.createElement("div");
     label.className = "time-label";
     label.innerText = `${h}:00`;
     row.appendChild(label);
-    for(let d=0;d<7;d++){
-      const key = `${weekKey}-${d}-${h}`;
-      const slot = document.createElement("div");
-      slot.className = "time-slot";
-      slot.dataset.key = key;
-      const data = schedule[key];
-      if(data){
-        slot.innerText = data.done ? `✔ ${data.name}` : data.name;
-        slot.classList.add(data.done ? "done" : "normal");
+    for(let d=0; d<7; d++){
+      const cell = document.createElement("div");
+      cell.className = "time-slot";
+      for(let q=0; q<4; q++){
+        const key = `${weekKey}-${d}-${h}-${q}`;
+        const data = schedule[key];
+        if(data){
+          const item = document.createElement("div");
+          item.className = "schedule-item" + (data.done ? " done" : "");
+          item.innerText = data.done ? `✔ ${data.name}` : data.name;
+          item.style.top = `${(q/4)*100}%`;
+          item.onclick = (e)=>{ e.stopPropagation(); openPopup(key); };
+          cell.appendChild(item);
+        }
       }
-      slot.onclick = ()=>openPopup(key);
-      row.appendChild(slot);
+      cell.onclick = ()=>openPopup(`${weekKey}-${d}-${h}`);
+      row.appendChild(cell);
     }
     container.appendChild(row);
   }
@@ -206,6 +260,36 @@ function getWeekKey(){
 }
 function openPopup(key){
   currentSlotKey = key;
+  const parts = key.split("-");
+  const isNew = parts.length === 5;
+  const timeSelectRow = document.getElementById("timeSelectRow");
+  const timeSelect = document.getElementById("timeSelect");
+  const title = document.querySelector("#popup .popup-title");
+  const doneBtn = document.querySelector("#popup .btn-done");
+  const clearBtn = document.querySelector("#popup .btn-clear");
+  if(isNew){
+    const h = parseInt(parts[parts.length-1]);
+    timeSelectRow.style.display = "block";
+    timeSelect.innerHTML = "";
+    for(let q=0; q<4; q++){
+      const opt = document.createElement("option");
+      opt.value = q;
+      opt.innerText = `${h}:${String(q*15).padStart(2,'0')}`;
+      timeSelect.appendChild(opt);
+    }
+    title.innerText = "安排课程";
+    doneBtn.style.display = "none";
+    clearBtn.style.display = "none";
+  } else {
+    timeSelectRow.style.display = "none";
+    doneBtn.style.display = "";
+    clearBtn.style.display = "";
+    const h = parseInt(parts[parts.length-2]);
+    const q = parseInt(parts[parts.length-1]);
+    const min = q * 15;
+    const data = schedule[key];
+    title.innerText = data ? `${data.name} - ${h}:${String(min).padStart(2,'0')}` : "安排课程";
+  }
   document.getElementById("popup").style.display = "flex";
 }
 function closePopup(){document.getElementById("popup").style.display = "none"}
@@ -221,6 +305,11 @@ function renderStudents(){
   });
 }
 function assignStudent(name){
+  const parts = currentSlotKey.split("-");
+  if(parts.length === 5){
+    const q = document.getElementById("timeSelect").value;
+    currentSlotKey = currentSlotKey + "-" + q;
+  }
   schedule[currentSlotKey] = {name, done:false};
   saveAll();
   renderTimeSlots();
@@ -246,7 +335,7 @@ function renderStudentManage(){
   students.forEach((stu,i)=>{
     const div = document.createElement("div");
     div.className = "student-item-manage";
-    div.innerHTML = `<span>${stu}</span><div class="student-btn-group"><button class="btn-record" onclick="openRecord('${stu}')">课程记录</button><button class="btn-del" onclick="delStudent(${i})">删除</button></div>`;
+    div.innerHTML = `<span>${stu}</span><div class="student-btn-group"><button class="btn-record" onclick="openRecord('${stu}')">课程记录</button><button class="btn-memo" onclick="openMemo('${stu}')">备忘</button><button class="btn-del" onclick="delStudent(${i})">删除</button></div>`;
     wrap.appendChild(div);
   });
 }
@@ -260,38 +349,43 @@ function addStudent(){
   renderStudentManage();
 }
 function delStudent(idx){
+  const name = students[idx];
   students.splice(idx,1);
+  delete studentMemos[name];
   saveAll();
   renderStudents();
   renderStudentManage();
 }
 function openRecord(name){
   recordStuName = name;
-  recordWeekOffset = 0;
-  document.getElementById("recordTitle").innerText = `${name} 课程记录`;
-  renderRecordWeek();
+  document.getElementById("recordTitle").innerHTML = `${name} 课程记录`;
   renderRecordList();
   document.getElementById("recordPopup").style.display = "flex";
 }
 function closeRecordPopup(){
   document.getElementById("recordPopup").style.display = "none";
 }
-function recordPrevWeek(){recordWeekOffset--;renderRecordWeek();renderRecordList()}
-function recordNextWeek(){recordWeekOffset++;renderRecordWeek();renderRecordList()}
-function renderRecordWeek(){
-  const s = getWeekStart(new Date(), recordWeekOffset);
-  const e = new Date(s);
-  e.setDate(e.getDate()+6);
-  const fmt = d=>`${d.getMonth()+1}/${d.getDate()}`;
-  document.getElementById("recordWeekText").innerText = `${fmt(s)} - ${fmt(e)}`;
+function formatSlotTime(key){
+  const parts = key.split("-");
+  const h = parseInt(parts[4]);
+  const q = parseInt(parts[5] || 0);
+  const startMin = q * 15;
+  const endMin = (q + 1) * 15;
+  if(endMin === 60){
+    return `${h}:${String(startMin).padStart(2,'0')}~${h+1}:00`;
+  }
+  return `${h}:${String(startMin).padStart(2,'0')}~${h}:${String(endMin).padStart(2,'0')}`;
 }
 function renderRecordList(){
   const listWrap = document.getElementById("recordList");
   listWrap.innerHTML = "";
   currentRecordList = [];
-  const weekStart = getWeekStart(new Date(), recordWeekOffset);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate()+6);
+  const now = new Date();
+  const monthAgo = new Date(now);
+  monthAgo.setDate(monthAgo.getDate() - 30);
+  const fmt = d=>`${d.getMonth()+1}/${d.getDate()}`;
+  const title = document.getElementById("recordTitle");
+  title.innerHTML = `${recordStuName} 课程记录<div style="font-size:13px;color:#666;font-weight:400;margin-top:4px">最近30天：${fmt(monthAgo)} ~ ${fmt(now)}</div>`;
   const records = [];
   for(const key in schedule){
     const item = schedule[key];
@@ -300,18 +394,18 @@ function renderRecordList(){
     const y = Number(parts[0]);
     const m = Number(parts[1]) - 1;
     const d = Number(parts[2]);
-    const hour = Number(parts[4]);
     const slotDate = new Date(y, m, d);
-    if(slotDate >= weekStart && slotDate <= weekEnd){
-      const data = {学生姓名: recordStuName,上课日期: `${y}-${m+1}-${d}`,上课时段: `${hour}:00~${hour+1}:00`};
+    if(slotDate >= monthAgo && slotDate <= now){
+      const data = {学生姓名: recordStuName, 上课日期: `${y}-${m+1}-${d}`, 上课时段: formatSlotTime(key)};
       records.push(data);
       currentRecordList.push(data);
     }
   }
   if(records.length === 0){
-    listWrap.innerHTML = `<div class="record-empty">本周暂无上课记录</div>`;
+    listWrap.innerHTML = `<div class="record-empty">最近30天暂无上课记录</div>`;
     return;
   }
+  records.sort((a,b)=>b.上课日期.localeCompare(a.上课日期) || b.上课时段.localeCompare(a.上课时段));
   records.forEach(r=>{
     const div = document.createElement("div");
     div.className = "flow-item";
@@ -319,15 +413,30 @@ function renderRecordList(){
     listWrap.appendChild(div);
   });
 }
+function getAllRecordsForStudent(name){
+  const all = [];
+  for(const key in schedule){
+    const item = schedule[key];
+    if(!item?.name || !item.done || item.name !== name) continue;
+    const parts = key.split("-");
+    const y = Number(parts[0]);
+    const m = Number(parts[1]) - 1;
+    const d = Number(parts[2]);
+    all.push({学生姓名: name, 上课日期: `${y}-${m+1}-${d}`, 上课时段: formatSlotTime(key)});
+  }
+  all.sort((a,b)=>a.上课日期.localeCompare(b.上课日期) || a.上课时段.localeCompare(b.上课时段));
+  return all;
+}
 function exportRecordExcel(){
-  if(currentRecordList.length === 0){
-    alert("本周暂无记录可导出");
+  const allRecords = getAllRecordsForStudent(recordStuName);
+  if(allRecords.length === 0){
+    alert("该学生暂无上课记录可导出");
     return;
   }
-  const ws = XLSX.utils.json_to_sheet(currentRecordList);
+  const ws = XLSX.utils.json_to_sheet(allRecords);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "课程记录");
-  XLSX.writeFile(wb, `${recordStuName}_${document.getElementById("recordWeekText").innerText}.xlsx`);
+  XLSX.writeFile(wb, `${recordStuName}_全部记录.xlsx`);
 }
 function statPrevWeek(){statWeekOffset--;calcStat()}
 function statNextWeek(){statWeekOffset++;calcStat()}
@@ -359,9 +468,108 @@ function calcStat(){
   }
   document.getElementById("statResult").innerHTML = html;
 }
+
+/* Memo functions */
+function openMemo(name){
+  currentMemoStudent = name;
+  document.getElementById("memoTitle").innerText = `${name} 的备忘`;
+  document.getElementById("memoDate").value = new Date().toISOString().slice(0,10);
+  document.getElementById("memoContent").value = "";
+  document.getElementById("memoPinned").checked = false;
+  renderMemoList();
+  document.getElementById("memoPopup").style.display = "flex";
+}
+function closeMemoPopup(){
+  document.getElementById("memoPopup").style.display = "none";
+}
+function addMemo(){
+  const date = document.getElementById("memoDate").value;
+  const content = document.getElementById("memoContent").value.trim();
+  if(!date || !content) return;
+  if(!studentMemos[currentMemoStudent]){
+    studentMemos[currentMemoStudent] = [];
+  }
+  studentMemos[currentMemoStudent].push({
+    id: Date.now(),
+    date,
+    content,
+    pinned: document.getElementById("memoPinned").checked
+  });
+  saveAll();
+  renderMemoList();
+  document.getElementById("memoContent").value = "";
+  document.getElementById("memoPinned").checked = false;
+}
+function togglePinMemo(student, id){
+  const memos = studentMemos[student];
+  if(!memos) return;
+  const memo = memos.find(m => m.id === id);
+  if(memo){
+    memo.pinned = !memo.pinned;
+    saveAll();
+    renderMemoList();
+  }
+}
+function delMemo(student, id){
+  if(!studentMemos[student]) return;
+  studentMemos[student] = studentMemos[student].filter(m => m.id !== id);
+  saveAll();
+  renderMemoList();
+}
+function renderMemoList(){
+  const list = document.getElementById("memoList");
+  list.innerHTML = "";
+  const memos = studentMemos[currentMemoStudent] || [];
+  const sorted = [...memos].sort((a, b) => {
+    if(a.pinned && !b.pinned) return -1;
+    if(!a.pinned && b.pinned) return 1;
+    return b.date.localeCompare(a.date) || b.id - a.id;
+  });
+  if(sorted.length === 0){
+    list.innerHTML = '<div class="record-empty">暂无备忘</div>';
+    return;
+  }
+  sorted.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "memo-item";
+    const header = document.createElement("div");
+    header.className = "memo-header";
+    const dateSpan = document.createElement("span");
+    dateSpan.className = "memo-date";
+    dateSpan.innerText = m.date;
+    header.appendChild(dateSpan);
+    if(m.pinned){
+      const pinTag = document.createElement("span");
+      pinTag.className = "memo-pinned-tag";
+      pinTag.innerText = "📌 置顶";
+      header.appendChild(pinTag);
+    }
+    div.appendChild(header);
+    const contentDiv = document.createElement("div");
+    contentDiv.className = "memo-content-text";
+    contentDiv.innerText = m.content;
+    div.appendChild(contentDiv);
+    const actions = document.createElement("div");
+    actions.className = "memo-actions";
+    const pinBtn = document.createElement("button");
+    pinBtn.className = "memo-btn memo-btn-pin";
+    pinBtn.innerText = m.pinned ? "取消置顶" : "置顶";
+    pinBtn.onclick = () => togglePinMemo(currentMemoStudent, m.id);
+    actions.appendChild(pinBtn);
+    const delBtn = document.createElement("button");
+    delBtn.className = "memo-btn memo-btn-del";
+    delBtn.innerText = "删除";
+    delBtn.onclick = () => delMemo(currentMemoStudent, m.id);
+    actions.appendChild(delBtn);
+    div.appendChild(actions);
+    list.appendChild(div);
+  });
+}
+
 function saveAll(){
   localStorage.setItem("teacherSchedule", JSON.stringify(schedule));
   localStorage.setItem("teacherStudents", JSON.stringify(students));
+  localStorage.setItem("teacherStudentMemos", JSON.stringify(studentMemos));
 }
 init();
 </script>
