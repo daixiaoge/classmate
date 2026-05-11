@@ -6,102 +6,183 @@
 <title>叶子老师排课工具</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-body{background:#f7f8fa;color:#222;padding-bottom:80px}
-.nav-bar{background:#fff;padding:12px 16px;display:flex;gap:8px;position:sticky;top:0;z-index:99;border-bottom:1px solid #eee}
-.nav-bar button{flex:1;border:none;background:#eef2ff;color:#3662e3;padding:8px 0;border-radius:8px;font-size:14px}
-.nav-bar button.active{background:#3662e3;color:#fff}
-.week-bar{background:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee}
-.week-title{font-size:15px;font-weight:600}
-.week-nav button{border:none;background:#eef2ff;color:#3662e3;padding:5px 10px;border-radius:8px;margin:0 3px;font-size:13px}
-.days-row{display:flex;background:#fff;border-bottom:1px solid #eee}
-.day-cell{text-align:center;padding:8px 2px;font-size:12px;font-weight:500;border-right:1px solid #eee;flex:1}
+:root {
+  --primary: #4F6CF7;
+  --primary-light: #EEF1FF;
+  --primary-dark: #3B55D9;
+  --success: #10B981;
+  --success-light: #ECFDF5;
+  --danger: #EF4444;
+  --danger-light: #FEF2F2;
+  --warning: #F59E0B;
+  --warning-light: #FFFBEB;
+  --bg: #F4F5F9;
+  --surface: #FFFFFF;
+  --text: #1E293B;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  --border: #E8ECF2;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.06);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.1);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --cell-w: 80px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
+body{background:var(--bg);color:var(--text);padding-bottom:80px;-webkit-font-smoothing:antialiased}
+
+/* Nav */
+.nav-bar{background:var(--surface);padding:10px 16px;display:flex;gap:6px;position:sticky;top:0;z-index:99;border-bottom:1px solid var(--border);backdrop-filter:blur(8px)}
+.nav-bar button{flex:1;border:none;background:transparent;color:var(--text-secondary);padding:10px 0;border-radius:var(--radius-sm);font-size:14px;font-weight:500;transition:all .2s;position:relative}
+.nav-bar button.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+.nav-bar button:not(.active):hover{background:#F1F4F9;color:var(--text)}
+
+/* Week bar */
+.week-bar{background:var(--surface);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.week-title{font-size:15px;font-weight:600;color:var(--text)}
+.week-nav{display:flex;gap:6px}
+.week-nav button{border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);padding:6px 14px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;transition:all .15s}
+.week-nav button:hover{background:var(--primary-light);color:var(--primary);border-color:var(--primary)}
+
+/* Schedule scroll wrapper */
+.schedule-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 0 8px 0}
+
+/* Days row */
+.days-row{display:flex;background:var(--surface);border-bottom:2px solid var(--border);width:fit-content;min-width:calc(48px + 7 * var(--cell-w))}
+.day-cell{text-align:center;padding:10px 4px;font-size:12px;font-weight:600;color:var(--text-secondary);border-right:1px solid var(--border);width:var(--cell-w);flex-shrink:0;line-height:1.5}
 .day-cell:last-child{border-right:none}
-.times-container{padding-top:4px}
-.time-row{display:flex;border-bottom:1px solid #e0e0e0}
-.time-label{width:46px;font-size:11px;color:#666;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:500}
-.time-slot{min-height:72px;padding:0;border-right:1px solid #eee;cursor:pointer;transition:0.15s;background:#fff;position:relative;flex:1;text-align:center}
+
+/* Time rows */
+.times-container{padding:6px 0 0 0}
+.time-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:3px;border-radius:var(--radius-sm);background:var(--surface);box-shadow:var(--shadow-sm);transition:box-shadow .15s;width:fit-content;min-width:calc(48px + 7 * var(--cell-w))}
+.time-row:hover{box-shadow:var(--shadow-md)}
+
+.time-label{width:48px;font-size:12px;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:600;background:var(--bg);border-right:1px solid var(--border);border-radius:var(--radius-sm) 0 0 var(--radius-sm);letter-spacing:.5px}
+
+.time-slot{min-height:76px;padding:0;border-right:1px solid var(--border);cursor:pointer;transition:background .15s;background:var(--surface);position:relative;width:var(--cell-w);flex-shrink:0}
 .time-slot:last-child{border-right:none}
-.schedule-item{position:absolute;left:2px;right:2px;height:18px;line-height:18px;padding:0 4px;font-size:10px;border-radius:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#eef6ff;color:#2d5bd1;font-weight:500;z-index:1;cursor:pointer}
-.schedule-item.done{background:#e8f5e9;color:#2e7d32}
-.popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:200}
-.popup-box{background:#fff;width:88%;max-width:360px;border-radius:14px;padding:20px;max-height:80vh;overflow:auto}
-.popup-title{font-size:16px;font-weight:600;margin-bottom:16px}
+.time-slot:hover{background:#FAFBFF}
+
+/* Schedule items */
+.schedule-item{position:absolute;left:3px;right:3px;height:18px;line-height:18px;padding:0 6px;font-size:10px;border-radius:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1;cursor:pointer;transition:transform .1s,box-shadow .1s;font-weight:500;letter-spacing:.3px}
+.schedule-item:hover{transform:scale(1.02);box-shadow:0 2px 6px rgba(0,0,0,.1);z-index:2}
+.schedule-item{background:#E8EDFF;color:var(--primary-dark)}
+.schedule-item.done{border-left:3px solid var(--success);background:var(--success-light);color:#065F46;border-radius:2px 3px 3px 2px}
+
+/* Popup */
+.popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+.popup-box{background:var(--surface);width:88%;max-width:380px;border-radius:16px;padding:24px;max-height:80vh;overflow:auto;box-shadow:var(--shadow-lg);animation:popIn .2s ease}
+@keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.popup-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px;letter-spacing:-.3px}
 .student-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.student-item{background:#f1f3fa;padding:8px 12px;border-radius:8px;font-size:13px;cursor:pointer}
-.popup-buttons{display:flex;gap:8px;flex-wrap:wrap}
-.popup-buttons button{flex:1;padding:10px;border:none;border-radius:10px;font-size:13px}
-.btn-done{background:#c8e6c9;color:#1b5e20}
-.btn-clear{background:#ffebee;color:#c62828}
-.btn-close{background:#eee;color:#333}
-.btn-export{background:#d1e7dd;color:#0f5132}
-.page{display:none;padding:16px}
+.student-item{background:var(--primary-light);padding:10px 16px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;color:var(--primary);cursor:pointer;transition:all .15s;border:1px solid transparent}
+.student-item:hover{background:var(--primary);color:#fff;border-color:var(--primary);transform:translateY(-1px);box-shadow:0 4px 8px rgba(79,108,247,.25)}
+.popup-buttons{display:flex;gap:8px}
+.popup-buttons button{flex:1;padding:11px 10px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-done{background:var(--success-light);color:#065F46}
+.btn-done:hover{background:var(--success);color:#fff}
+.btn-clear{background:var(--danger-light);color:#991B1B}
+.btn-clear:hover{background:var(--danger);color:#fff}
+.btn-close{background:var(--bg);color:var(--text-secondary)}
+.btn-close:hover{background:#E2E8F0;color:var(--text)}
+.btn-export{background:var(--primary-light);color:var(--primary)}
+.btn-export:hover{background:var(--primary);color:#fff}
+
+/* Pages */
+.page{display:none;padding:12px 16px}
 .page.active{display:block}
-.add-student{display:flex;gap:8px;margin-bottom:16px}
-.add-student input{flex:1;padding:10px;border:1px solid #ddd;border-radius:8px}
-.add-student button{padding:10px 14px;background:#3662e3;color:#fff;border:none;border-radius:8px}
-.student-item-manage{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-radius:8px;margin-bottom:8px}
+
+/* Student management */
+.add-student{display:flex;gap:8px;margin-bottom:20px}
+.add-student input{flex:1;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:14px;transition:border .15s;outline:none;background:var(--surface)}
+.add-student input:focus{border-color:var(--primary)}
+.add-student button{padding:12px 20px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.add-student button:hover{background:var(--primary-dark);box-shadow:0 4px 8px rgba(79,108,247,.25)}
+
+.student-item-manage{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--surface);border-radius:var(--radius);margin-bottom:10px;box-shadow:var(--shadow-sm);border:1px solid var(--border);transition:box-shadow .15s}
+.student-item-manage:hover{box-shadow:var(--shadow-md)}
+.student-item-manage > span{font-size:15px;font-weight:600;color:var(--text)}
+
 .student-btn-group{display:flex;gap:6px}
-.student-item-manage button{border:none;padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer}
-.btn-record{background:#eef2ff;color:#3662e3}
-.btn-memo{background:#fff3e0;color:#e65100}
-.btn-del{background:#ffcdd2;color:#c62828}
+.student-item-manage button{border:none;padding:7px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-record{background:var(--primary-light);color:var(--primary)}
+.btn-record:hover{background:var(--primary);color:#fff}
+.btn-memo{background:var(--warning-light);color:#92400E}
+.btn-memo:hover{background:var(--warning);color:#fff}
+.btn-del{background:var(--danger-light);color:#991B1B}
+.btn-del:hover{background:var(--danger);color:#fff}
+
+/* Statistics */
 .stat-week-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.stat-week-nav button{background:#eef2ff;border:none;padding:8px 12px;border-radius:8px;color:#3662e3}
-.stat-week-text{font-weight:600;font-size:15px}
-.stat-box{background:#fff;padding:16px;border-radius:10px}
-.stat-item{padding:8px 0;font-size:14px}
-.stat-total{font-size:16px;font-weight:600;margin-bottom:12px;color:#222}
-.flow-item{padding:8px 0;border-bottom:1px solid #eee;font-size:13px;color:#333}
-.record-empty{text-align:center;color:#999;padding:20px 0}
-.record-title-date{font-size:13px;color:#666;font-weight:400;margin-top:4px}
+.stat-week-nav button{border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;transition:all .15s}
+.stat-week-nav button:hover{background:var(--primary-light);color:var(--primary);border-color:var(--primary)}
+.stat-week-text{font-weight:600;font-size:15px;color:var(--text)}
+.stat-box{background:var(--surface);padding:20px;border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+.stat-item{padding:10px 0;font-size:14px;color:var(--text);border-bottom:1px solid var(--border)}
+.stat-item:last-child{border-bottom:none}
+.stat-total{font-size:17px;font-weight:700;margin-bottom:16px;color:var(--text);letter-spacing:-.3px}
+.flow-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text);line-height:1.5}
+.flow-item:last-child{border-bottom:none}
+
+/* Record */
+.record-empty{text-align:center;color:var(--text-muted);padding:32px 0;font-size:14px}
 
 /* Memo styles */
-.memo-item{padding:10px;background:#f8f9fc;border-radius:8px;margin-bottom:8px}
-.memo-header{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
-.memo-date{font-size:12px;color:#666}
-.memo-pinned-tag{font-size:11px;color:#e65100;font-weight:500}
-.memo-content-text{font-size:13px;color:#222;margin-bottom:6px;white-space:pre-wrap;word-break:break-word}
+.memo-item{padding:14px;background:#FAFBFF;border-radius:var(--radius-sm);margin-bottom:10px;border:1px solid var(--border);transition:box-shadow .15s}
+.memo-item:hover{box-shadow:var(--shadow-sm)}
+.memo-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.memo-date{font-size:12px;color:var(--text-secondary)}
+.memo-pinned-tag{font-size:11px;color:var(--warning);font-weight:600}
+.memo-content-text{font-size:14px;color:var(--text);margin-bottom:10px;white-space:pre-wrap;word-break:break-word;line-height:1.6}
 .memo-actions{display:flex;gap:6px}
-.memo-btn{border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer}
-.memo-btn-pin{background:#eef2ff;color:#3662e3}
-.memo-btn-del{background:#ffebee;color:#c62828}
-.memo-form{margin-bottom:12px}
-.memo-form input,.memo-form textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px}
-.memo-form textarea{resize:vertical;min-height:60px;margin-top:6px}
-.memo-form label{display:flex;align-items:center;gap:6px;font-size:13px;margin-top:6px;cursor:pointer}
-.memo-form .btn-add{width:100%;padding:8px;background:#3662e3;color:#fff;border:none;border-radius:8px;margin-top:8px;font-size:13px;cursor:pointer}
+.memo-btn{border:1px solid var(--border);padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;transition:all .15s;font-weight:500}
+.memo-btn-pin{background:var(--primary-light);color:var(--primary);border-color:transparent}
+.memo-btn-pin:hover{background:var(--primary);color:#fff}
+.memo-btn-del{background:var(--danger-light);color:#991B1B;border-color:transparent}
+.memo-btn-del:hover{background:var(--danger);color:#fff}
+.memo-form{margin-bottom:16px}
+.memo-form input,.memo-form textarea{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:13px;transition:border .15s;outline:none;background:var(--surface)}
+.memo-form input:focus,.memo-form textarea:focus{border-color:var(--primary)}
+.memo-form textarea{resize:vertical;min-height:70px;margin-top:8px;font-family:inherit}
+.memo-form label{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px;cursor:pointer;color:var(--text-secondary)}
+.memo-form label input[type="checkbox"]{width:16px;height:16px;accent-color:var(--primary)}
+.memo-form .btn-add{width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);margin-top:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.memo-form .btn-add:hover{background:var(--primary-dark);box-shadow:0 4px 8px rgba(79,108,247,.25)}
 </style>
 </head>
 <body>
 <div class="nav-bar">
-  <button class="active" onclick="switchPage('schedule')">排课</button>
-  <button onclick="switchPage('student')">学生管理</button>
-  <button onclick="switchPage('stat')">统计</button>
+  <button class="active" onclick="switchPage('schedule')">📅 排课</button>
+  <button onclick="switchPage('student')">👥 学生</button>
+  <button onclick="switchPage('stat')">📊 统计</button>
 </div>
 <div class="page active" id="page-schedule">
   <div class="week-bar">
     <div class="week-title" id="weekText">本周</div>
     <div class="week-nav">
-      <button onclick="prevWeek()">上一周</button>
-      <button onclick="nextWeek()">下一周</button>
+      <button onclick="prevWeek()">‹ 上一周</button>
+      <button onclick="nextWeek()">下一周 ›</button>
     </div>
   </div>
-  <div class="days-row" id="daysRow"></div>
-  <div class="times-container" id="timesContainer"></div>
+  <div class="schedule-scroll">
+    <div class="days-row" id="daysRow"></div>
+    <div class="times-container" id="timesContainer"></div>
+  </div>
 </div>
 <div class="page" id="page-student">
   <div class="add-student">
     <input type="text" id="stuInput" placeholder="输入学生姓名">
-    <button onclick="addStudent()">添加</button>
+    <button onclick="addStudent()">＋ 添加</button>
   </div>
   <div id="stuListManage"></div>
 </div>
 <div class="page" id="page-stat">
   <div class="stat-week-nav">
-    <button onclick="statPrevWeek()">上一周</button>
+    <button onclick="statPrevWeek()">‹ 上一周</button>
     <div class="stat-week-text" id="statWeekText">本周</div>
-    <button onclick="statNextWeek()">下一周</button>
+    <button onclick="statNextWeek()">下一周 ›</button>
   </div>
   <div class="stat-box">
     <div id="statResult"></div>
@@ -109,14 +190,14 @@ body{background:#f7f8fa;color:#222;padding-bottom:80px}
 </div>
 <div class="popup" id="popup">
   <div class="popup-box">
-    <div class="popup-title">安排课程</div>
+    <div class="popup-title" id="popupTitle">安排课程</div>
     <div class="time-select-row" id="timeSelectRow" style="margin-bottom:12px">
-      <select id="timeSelect" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px"></select>
+      <select id="timeSelect" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:14px;outline:none;background:var(--surface);appearance:auto;cursor:pointer"></select>
     </div>
     <div class="student-list" id="studentList"></div>
     <div class="popup-buttons">
-      <button class="btn-done" onclick="setDone()">标记已上课 ✔</button>
-      <button class="btn-clear" onclick="clearSlot()">取消安排</button>
+      <button class="btn-done" onclick="setDone()">✓ 标记已上课</button>
+      <button class="btn-clear" onclick="clearSlot()">✕ 取消安排</button>
       <button class="btn-close" onclick="closePopup()">关闭</button>
     </div>
   </div>
@@ -126,7 +207,7 @@ body{background:#f7f8fa;color:#222;padding-bottom:80px}
     <div class="popup-title" id="recordTitle">学生课程记录</div>
     <div id="recordList"></div>
     <div class="popup-buttons" style="margin-top:16px">
-      <button class="btn-export" onclick="exportRecordExcel()">导出全部记录</button>
+      <button class="btn-export" onclick="exportRecordExcel()">📥 导出全部记录</button>
       <button class="btn-close" onclick="closeRecordPopup()">关闭</button>
     </div>
   </div>
@@ -136,9 +217,9 @@ body{background:#f7f8fa;color:#222;padding-bottom:80px}
     <div class="popup-title" id="memoTitle">备忘</div>
     <div class="memo-form">
       <input type="date" id="memoDate">
-      <textarea id="memoContent" placeholder="输入备忘内容"></textarea>
-      <label><input type="checkbox" id="memoPinned"> 置顶</label>
-      <button class="btn-add" onclick="addMemo()">添加备忘</button>
+      <textarea id="memoContent" placeholder="输入备忘内容…"></textarea>
+      <label><input type="checkbox" id="memoPinned"> 📌 置顶</label>
+      <button class="btn-add" onclick="addMemo()">＋ 添加备忘</button>
     </div>
     <div id="memoList"></div>
     <div class="popup-buttons" style="margin-top:12px">
@@ -209,7 +290,7 @@ function renderDays(){
   const row = document.getElementById("daysRow");
   row.innerHTML = "";
   const spacer = document.createElement("div");
-  spacer.style.cssText = "width:46px;flex-shrink:0";
+  spacer.style.cssText = "width:48px;flex-shrink:0";
   row.appendChild(spacer);
   const start = getWeekStart(new Date(), currentWeekOffset);
   const weekNames = ["周一","周二","周三","周四","周五","周六","周日"];
@@ -218,7 +299,7 @@ function renderDays(){
     d.setDate(d.getDate()+i);
     const cell = document.createElement("div");
     cell.className = "day-cell";
-    cell.innerText = `${weekNames[i]}\n${d.getMonth()+1}/${d.getDate()}`;
+    cell.innerHTML = `<div style="font-size:13px;color:var(--text)">${weekNames[i]}</div>${d.getMonth()+1}/${d.getDate()}`;
     row.appendChild(cell);
   }
 }
@@ -242,8 +323,9 @@ function renderTimeSlots(){
         if(data){
           const item = document.createElement("div");
           item.className = "schedule-item" + (data.done ? " done" : "");
-          item.innerText = data.done ? `✔ ${data.name}` : data.name;
+          item.innerText = data.name;
           item.style.top = `${(q/4)*100}%`;
+          item.title = data.name + (data.done ? " (已完成)" : "");
           item.onclick = (e)=>{ e.stopPropagation(); openPopup(key); };
           cell.appendChild(item);
         }
@@ -264,7 +346,7 @@ function openPopup(key){
   const isNew = parts.length === 5;
   const timeSelectRow = document.getElementById("timeSelectRow");
   const timeSelect = document.getElementById("timeSelect");
-  const title = document.querySelector("#popup .popup-title");
+  const title = document.getElementById("popupTitle");
   const doneBtn = document.querySelector("#popup .btn-done");
   const clearBtn = document.querySelector("#popup .btn-clear");
   if(isNew){
@@ -288,7 +370,7 @@ function openPopup(key){
     const q = parseInt(parts[parts.length-1]);
     const min = q * 15;
     const data = schedule[key];
-    title.innerText = data ? `${data.name} - ${h}:${String(min).padStart(2,'0')}` : "安排课程";
+    title.innerText = data ? `${data.name} · ${h}:${String(min).padStart(2,'0')}` : "安排课程";
   }
   document.getElementById("popup").style.display = "flex";
 }
@@ -335,7 +417,7 @@ function renderStudentManage(){
   students.forEach((stu,i)=>{
     const div = document.createElement("div");
     div.className = "student-item-manage";
-    div.innerHTML = `<span>${stu}</span><div class="student-btn-group"><button class="btn-record" onclick="openRecord('${stu}')">课程记录</button><button class="btn-memo" onclick="openMemo('${stu}')">备忘</button><button class="btn-del" onclick="delStudent(${i})">删除</button></div>`;
+    div.innerHTML = `<span>${stu}</span><div class="student-btn-group"><button class="btn-record" onclick="openRecord('${stu}')">📋 课程记录</button><button class="btn-memo" onclick="openMemo('${stu}')">📝 备忘</button><button class="btn-del" onclick="delStudent(${i})">删除</button></div>`;
     wrap.appendChild(div);
   });
 }
@@ -385,7 +467,7 @@ function renderRecordList(){
   monthAgo.setDate(monthAgo.getDate() - 30);
   const fmt = d=>`${d.getMonth()+1}/${d.getDate()}`;
   const title = document.getElementById("recordTitle");
-  title.innerHTML = `${recordStuName} 课程记录<div style="font-size:13px;color:#666;font-weight:400;margin-top:4px">最近30天：${fmt(monthAgo)} ~ ${fmt(now)}</div>`;
+  title.innerHTML = `${recordStuName} 课程记录<div style="font-size:13px;color:var(--text-secondary);font-weight:400;margin-top:4px">最近30天：${fmt(monthAgo)} ~ ${fmt(now)}</div>`;
   const records = [];
   for(const key in schedule){
     const item = schedule[key];
@@ -462,9 +544,10 @@ function calcStat(){
       stuStat[item.name]++;
     }
   }
-  let html = `<div class="stat-total">📊 本周已完成总课时：${totalDone}</div>`;
+  let html = `<div class="stat-total">📊 本周已完成：${totalDone} 课时</div>`;
   for(const name in stuStat){
-    html += `<div class="stat-item">👤 ${name}：${stuStat[name]} 课时</div>`;
+    const count = stuStat[name];
+    html += `<div class="stat-item">${count > 0 ? '✅' : '○'} ${name}：${count} 课时</div>`;
   }
   document.getElementById("statResult").innerHTML = html;
 }
