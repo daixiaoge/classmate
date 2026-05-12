@@ -27,7 +27,7 @@
   --shadow-lg: 0 12px 32px rgba(0,0,0,.1);
   --radius: 12px;
   --radius-sm: 8px;
-  --cell-w: 80px;
+  --cell-min-w: 80px;
 }
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
@@ -50,25 +50,24 @@ body{background:var(--bg);color:var(--text);padding-bottom:80px;-webkit-font-smo
 .schedule-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 0 8px 0}
 
 /* Days row */
-.days-row{display:flex;background:var(--surface);border-bottom:2px solid var(--border);width:fit-content;min-width:calc(48px + 7 * var(--cell-w))}
-.day-cell{text-align:center;padding:10px 4px;font-size:12px;font-weight:600;color:var(--text-secondary);border-right:1px solid var(--border);width:var(--cell-w);flex-shrink:0;line-height:1.5}
+.days-row{display:flex;background:var(--surface);border-bottom:2px solid var(--border)}
+.day-cell{text-align:center;padding:10px 4px;font-size:12px;font-weight:600;color:var(--text-secondary);border-right:1px solid var(--border);flex:1;min-width:var(--cell-min-w);line-height:1.5}
 .day-cell:last-child{border-right:none}
 
 /* Time rows */
 .times-container{padding:6px 0 0 0}
-.time-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:3px;border-radius:var(--radius-sm);background:var(--surface);box-shadow:var(--shadow-sm);transition:box-shadow .15s;width:fit-content;min-width:calc(48px + 7 * var(--cell-w))}
+.time-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:3px;border-radius:var(--radius-sm);background:var(--surface);box-shadow:var(--shadow-sm);transition:box-shadow .15s}
 .time-row:hover{box-shadow:var(--shadow-md)}
 
 .time-label{width:48px;font-size:12px;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:600;background:var(--bg);border-right:1px solid var(--border);border-radius:var(--radius-sm) 0 0 var(--radius-sm);letter-spacing:.5px}
 
-.time-slot{min-height:76px;padding:0;border-right:1px solid var(--border);cursor:pointer;transition:background .15s;background:var(--surface);position:relative;width:var(--cell-w);flex-shrink:0}
+.time-slot{min-height:76px;padding:0;border-right:1px solid var(--border);cursor:pointer;transition:background .15s;background:var(--surface);position:relative;overflow:hidden;flex:1;min-width:var(--cell-min-w)}
 .time-slot:last-child{border-right:none}
 .time-slot:hover{background:#FAFBFF}
 
-/* Schedule items */
-.schedule-item{position:absolute;left:3px;right:3px;height:18px;line-height:18px;padding:0 6px;font-size:10px;border-radius:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1;cursor:pointer;transition:transform .1s,box-shadow .1s;font-weight:500;letter-spacing:.3px}
+/* Schedule items — 45-min block */
+.schedule-item{position:absolute;left:3px;right:3px;padding:3px 6px 0;font-size:10px;font-weight:500;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1;cursor:pointer;transition:transform .1s,box-shadow .1s;letter-spacing:.3px;background:#E8EDFF;color:var(--primary-dark)}
 .schedule-item:hover{transform:scale(1.02);box-shadow:0 2px 6px rgba(0,0,0,.1);z-index:2}
-.schedule-item{background:#E8EDFF;color:var(--primary-dark)}
 .schedule-item.done{border-left:3px solid var(--success);background:var(--success-light);color:#065F46;border-radius:2px 3px 3px 2px}
 
 /* Popup */
@@ -125,29 +124,21 @@ body{background:var(--bg);color:var(--text);padding-bottom:80px;-webkit-font-smo
 .stat-total{font-size:17px;font-weight:700;margin-bottom:16px;color:var(--text);letter-spacing:-.3px}
 .flow-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text);line-height:1.5}
 .flow-item:last-child{border-bottom:none}
-
-/* Record */
 .record-empty{text-align:center;color:var(--text-muted);padding:32px 0;font-size:14px}
 
 /* Memo styles */
 .memo-item{padding:14px;background:#FAFBFF;border-radius:var(--radius-sm);margin-bottom:10px;border:1px solid var(--border);transition:box-shadow .15s}
 .memo-item:hover{box-shadow:var(--shadow-sm)}
-.memo-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
-.memo-date{font-size:12px;color:var(--text-secondary)}
-.memo-pinned-tag{font-size:11px;color:var(--warning);font-weight:600}
+.memo-date{font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px}
 .memo-content-text{font-size:14px;color:var(--text);margin-bottom:10px;white-space:pre-wrap;word-break:break-word;line-height:1.6}
-.memo-actions{display:flex;gap:6px}
+.memo-actions{display:flex;gap:6px;justify-content:flex-end}
 .memo-btn{border:1px solid var(--border);padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;transition:all .15s;font-weight:500}
-.memo-btn-pin{background:var(--primary-light);color:var(--primary);border-color:transparent}
-.memo-btn-pin:hover{background:var(--primary);color:#fff}
 .memo-btn-del{background:var(--danger-light);color:#991B1B;border-color:transparent}
 .memo-btn-del:hover{background:var(--danger);color:#fff}
 .memo-form{margin-bottom:16px}
 .memo-form input,.memo-form textarea{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:13px;transition:border .15s;outline:none;background:var(--surface)}
 .memo-form input:focus,.memo-form textarea:focus{border-color:var(--primary)}
 .memo-form textarea{resize:vertical;min-height:70px;margin-top:8px;font-family:inherit}
-.memo-form label{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px;cursor:pointer;color:var(--text-secondary)}
-.memo-form label input[type="checkbox"]{width:16px;height:16px;accent-color:var(--primary)}
 .memo-form .btn-add{width:100%;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);margin-top:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
 .memo-form .btn-add:hover{background:var(--primary-dark);box-shadow:0 4px 8px rgba(79,108,247,.25)}
 </style>
@@ -218,7 +209,6 @@ body{background:var(--bg);color:var(--text);padding-bottom:80px;-webkit-font-smo
     <div class="memo-form">
       <input type="date" id="memoDate">
       <textarea id="memoContent" placeholder="输入备忘内容…"></textarea>
-      <label><input type="checkbox" id="memoPinned"> 📌 置顶</label>
       <button class="btn-add" onclick="addMemo()">＋ 添加备忘</button>
     </div>
     <div id="memoList"></div>
@@ -242,12 +232,21 @@ let studentMemos = JSON.parse(localStorage.getItem("teacherStudentMemos")) || {}
 
 function migrateScheduleData(){
   let changed = false;
-  for(const key in schedule){
+  const entries = Object.entries(schedule);
+  for(const [key, item] of entries){
+    if(!item || !item.name) continue;
     const parts = key.split("-");
-    if(parts.length === 5){
-      const newKey = key + "-0";
-      schedule[newKey] = schedule[key];
+    if(parts.length === 6){
+      // Convert weekKey-dayIdx-hour-quarter → weekKey-dayIdx-hour + startQuarter
+      const newKey = `${parts[0]}-${parts[1]}-${parts[2]}-${parts[3]}-${parts[4]}`;
+      const quarter = parseInt(parts[5]);
+      if(!schedule[newKey]){
+        schedule[newKey] = { name: item.name, done: item.done || false, startQuarter: quarter };
+      }
       delete schedule[key];
+      changed = true;
+    } else if(parts.length === 5 && item.startQuarter === undefined){
+      item.startQuarter = 0;
       changed = true;
     }
   }
@@ -317,20 +316,20 @@ function renderTimeSlots(){
     for(let d=0; d<7; d++){
       const cell = document.createElement("div");
       cell.className = "time-slot";
-      for(let q=0; q<4; q++){
-        const key = `${weekKey}-${d}-${h}-${q}`;
-        const data = schedule[key];
-        if(data){
-          const item = document.createElement("div");
-          item.className = "schedule-item" + (data.done ? " done" : "");
-          item.innerText = data.name;
-          item.style.top = `${(q/4)*100}%`;
-          item.title = data.name + (data.done ? " (已完成)" : "");
-          item.onclick = (e)=>{ e.stopPropagation(); openPopup(key); };
-          cell.appendChild(item);
-        }
+      const key = `${weekKey}-${d}-${h}`;
+      const data = schedule[key];
+      if(data){
+        const q = data.startQuarter || 0;
+        const item = document.createElement("div");
+        item.className = "schedule-item" + (data.done ? " done" : "");
+        item.innerText = data.name;
+        item.style.top = `${(q/4)*100}%`;
+        item.style.height = `75%`;
+        item.title = `${data.name} · ${formatSlotTime(key)}` + (data.done ? " (已完成)" : "");
+        item.onclick = (e)=>{ e.stopPropagation(); openPopup(key); };
+        cell.appendChild(item);
       }
-      cell.onclick = ()=>openPopup(`${weekKey}-${d}-${h}`);
+      cell.onclick = ()=>openPopup(key);
       row.appendChild(cell);
     }
     container.appendChild(row);
@@ -342,15 +341,14 @@ function getWeekKey(){
 }
 function openPopup(key){
   currentSlotKey = key;
-  const parts = key.split("-");
-  const isNew = parts.length === 5;
+  const data = schedule[key];
   const timeSelectRow = document.getElementById("timeSelectRow");
   const timeSelect = document.getElementById("timeSelect");
   const title = document.getElementById("popupTitle");
   const doneBtn = document.querySelector("#popup .btn-done");
   const clearBtn = document.querySelector("#popup .btn-clear");
-  if(isNew){
-    const h = parseInt(parts[parts.length-1]);
+  if(!data){
+    const h = parseInt(key.split("-")[4]);
     timeSelectRow.style.display = "block";
     timeSelect.innerHTML = "";
     for(let q=0; q<4; q++){
@@ -366,11 +364,7 @@ function openPopup(key){
     timeSelectRow.style.display = "none";
     doneBtn.style.display = "";
     clearBtn.style.display = "";
-    const h = parseInt(parts[parts.length-2]);
-    const q = parseInt(parts[parts.length-1]);
-    const min = q * 15;
-    const data = schedule[key];
-    title.innerText = data ? `${data.name} · ${h}:${String(min).padStart(2,'0')}` : "安排课程";
+    title.innerText = `${data.name} · ${formatSlotTime(key)}`;
   }
   document.getElementById("popup").style.display = "flex";
 }
@@ -387,12 +381,14 @@ function renderStudents(){
   });
 }
 function assignStudent(name){
-  const parts = currentSlotKey.split("-");
-  if(parts.length === 5){
-    const q = document.getElementById("timeSelect").value;
-    currentSlotKey = currentSlotKey + "-" + q;
+  const data = schedule[currentSlotKey];
+  if(data){
+    data.name = name;
+    data.done = false;
+  } else {
+    const q = parseInt(document.getElementById("timeSelect").value);
+    schedule[currentSlotKey] = { name, done: false, startQuarter: q };
   }
-  schedule[currentSlotKey] = {name, done:false};
   saveAll();
   renderTimeSlots();
   closePopup();
@@ -440,7 +436,6 @@ function delStudent(idx){
 }
 function openRecord(name){
   recordStuName = name;
-  document.getElementById("recordTitle").innerHTML = `${name} 课程记录`;
   renderRecordList();
   document.getElementById("recordPopup").style.display = "flex";
 }
@@ -448,15 +443,16 @@ function closeRecordPopup(){
   document.getElementById("recordPopup").style.display = "none";
 }
 function formatSlotTime(key){
+  const data = schedule[key];
+  if(!data) return "";
   const parts = key.split("-");
   const h = parseInt(parts[4]);
-  const q = parseInt(parts[5] || 0);
+  const q = data.startQuarter || 0;
   const startMin = q * 15;
-  const endMin = (q + 1) * 15;
-  if(endMin === 60){
-    return `${h}:${String(startMin).padStart(2,'0')}~${h+1}:00`;
-  }
-  return `${h}:${String(startMin).padStart(2,'0')}~${h}:${String(endMin).padStart(2,'0')}`;
+  const endMin = startMin + 45;
+  const endH = h + Math.floor(endMin / 60);
+  const endM = endMin % 60;
+  return `${h}:${String(startMin).padStart(2,'0')}-${endH}:${String(endM).padStart(2,'0')}`;
 }
 function renderRecordList(){
   const listWrap = document.getElementById("recordList");
@@ -547,7 +543,9 @@ function calcStat(){
   let html = `<div class="stat-total">📊 本周已完成：${totalDone} 课时</div>`;
   for(const name in stuStat){
     const count = stuStat[name];
-    html += `<div class="stat-item">${count > 0 ? '✅' : '○'} ${name}：${count} 课时</div>`;
+    if(count > 0){
+      html += `<div class="stat-item">${name}：${count} 课时</div>`;
+    }
   }
   document.getElementById("statResult").innerHTML = html;
 }
@@ -558,7 +556,6 @@ function openMemo(name){
   document.getElementById("memoTitle").innerText = `${name} 的备忘`;
   document.getElementById("memoDate").value = new Date().toISOString().slice(0,10);
   document.getElementById("memoContent").value = "";
-  document.getElementById("memoPinned").checked = false;
   renderMemoList();
   document.getElementById("memoPopup").style.display = "flex";
 }
@@ -572,26 +569,10 @@ function addMemo(){
   if(!studentMemos[currentMemoStudent]){
     studentMemos[currentMemoStudent] = [];
   }
-  studentMemos[currentMemoStudent].push({
-    id: Date.now(),
-    date,
-    content,
-    pinned: document.getElementById("memoPinned").checked
-  });
+  studentMemos[currentMemoStudent].push({ id: Date.now(), date, content });
   saveAll();
   renderMemoList();
   document.getElementById("memoContent").value = "";
-  document.getElementById("memoPinned").checked = false;
-}
-function togglePinMemo(student, id){
-  const memos = studentMemos[student];
-  if(!memos) return;
-  const memo = memos.find(m => m.id === id);
-  if(memo){
-    memo.pinned = !memo.pinned;
-    saveAll();
-    renderMemoList();
-  }
 }
 function delMemo(student, id){
   if(!studentMemos[student]) return;
@@ -603,11 +584,7 @@ function renderMemoList(){
   const list = document.getElementById("memoList");
   list.innerHTML = "";
   const memos = studentMemos[currentMemoStudent] || [];
-  const sorted = [...memos].sort((a, b) => {
-    if(a.pinned && !b.pinned) return -1;
-    if(!a.pinned && b.pinned) return 1;
-    return b.date.localeCompare(a.date) || b.id - a.id;
-  });
+  const sorted = [...memos].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
   if(sorted.length === 0){
     list.innerHTML = '<div class="record-empty">暂无备忘</div>';
     return;
@@ -615,30 +592,16 @@ function renderMemoList(){
   sorted.forEach(m => {
     const div = document.createElement("div");
     div.className = "memo-item";
-    const header = document.createElement("div");
-    header.className = "memo-header";
     const dateSpan = document.createElement("span");
     dateSpan.className = "memo-date";
     dateSpan.innerText = m.date;
-    header.appendChild(dateSpan);
-    if(m.pinned){
-      const pinTag = document.createElement("span");
-      pinTag.className = "memo-pinned-tag";
-      pinTag.innerText = "📌 置顶";
-      header.appendChild(pinTag);
-    }
-    div.appendChild(header);
+    div.appendChild(dateSpan);
     const contentDiv = document.createElement("div");
     contentDiv.className = "memo-content-text";
     contentDiv.innerText = m.content;
     div.appendChild(contentDiv);
     const actions = document.createElement("div");
     actions.className = "memo-actions";
-    const pinBtn = document.createElement("button");
-    pinBtn.className = "memo-btn memo-btn-pin";
-    pinBtn.innerText = m.pinned ? "取消置顶" : "置顶";
-    pinBtn.onclick = () => togglePinMemo(currentMemoStudent, m.id);
-    actions.appendChild(pinBtn);
     const delBtn = document.createElement("button");
     delBtn.className = "memo-btn memo-btn-del";
     delBtn.innerText = "删除";
